@@ -10,7 +10,7 @@ theme = 'paper'
   twitter = '0xkylm'    
   github = '0xkylm'    
 
-  avatar = 'https://avatars.githubusercontent.com/u/94079228?s=400&u=0fe4142bcd24004f9f3af6cde4dbdac3be9542c9&v=4'                 # gravatar email or image url
+  avatar = 'https://avatars.githubusercontent.com/u/94079228?s=800&u=0fe4142bcd24004f9f3af6cde4dbdac3be9542c9&v=4'                 # gravatar email or image url
   name = 'Kylm'
   bio = 'French student, internship @ Fuzzinglabs,  Interested in vr,ed and maldev'
 
