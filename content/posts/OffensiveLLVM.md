@@ -7,23 +7,22 @@ date: 2025-08-13T21:40:22+02:00
 Little disclaimer: I'm a novice with LLVM—my only experience is about two days of writing passes and trying to learn how everything works. If you spot any misinterpretations or errors, let me know! ;)
 ```
 
+Have you already heard of **OLLVM**, a compiler that outputs obfuscated binaries? Probably. But what is it exactly? Can we achieve something similar ?
 
-You’ve probably already heard of **OLLVM**, which is basically a compiler that obfuscates your code. But what is it exactly, and if it exists, why can’t we do the same?
+OLLVM is based on **LLVM** (Low Level Virtual Machine), which serves as a backend for various compilers. LLVM lifts code into an Intermediate Representation called **LLVM IR** (LLIR). The code is then compiled into machine code using a toolchain. The key feature here is that you can apply transformations to the code between the IR stage and the final machine code generation. These transformations are called **passes**.
 
-OLLVM is based on **LLVM** (Low Level Virtual Machine), which acts as a backend for various compilers. LLVM lifts code into an intermediate representation called **LLVM IR** . The code is then compiled into machine code using a toolchain. The key feature here is that you can apply transformations to the code between the IR stage and the final machine code generation. These transformations are called **passes**.
+Passes allow you to modify the code at the granularity of individual instructions. For example, you can add functions, split basic blocks, modify constants, etc.
 
-These passes allow you to modify the code at the granularity of individual instructions. For example, you can add functions, split basic blocks, modify constants, etc.
-
-I’ve been interested in obfuscation since seeing [es3n1n’s Bin2Bin obfuscator](https://blog.es3n1n.eu/posts/obfuscator-pt-1/). A full bin2bin obfuscator seemed daunting, so I opted for a simpler **source-to-bin** approach. After a year of procrastination, I spent a weekend writing LLVM passes for:
+I’ve been interested in obfuscation since I’ve came across [es3n1n’s Bin2Bin obfuscator](https://blog.es3n1n.eu/posts/obfuscator-pt-1/). A full binary-to-binary obfuscator seemed daunting, so I opted for a simpler **source-to-bin** approach. After a year of procrastination, I spent a full weekend writing LLVM passes.
 
 The goal of these passes is to:
 
-- Cipher constants, strings, and variables, and only decipher them at runtime.
+- Encrypt constants, strings, and variables, and only decrypt them at runtime.
 - Apply simple MBA (Mixed Boolean-Arithmetic) transformations.
 - Apply CFF (Control Flow Flattening).
-- And finally some 'offensive things', like replacing a simple GetProcAddress with a custom one using hashes, for example.
+- And finally some "offensive things", like replacing GetProcAddress calls by a custom manual resolution function that uses API hashing for example.
 
-One nice thing is that since these transformations happen between IR → MC (machine code), and many languages use LLVM (Rust, C++, C, Nim, and even Go with some OSS compilers), it’s quite versatile.
+A nice thing is that since these transformations happen between IR → MC (machine code), and many languages use LLVM (C, C++, Rust, Nim, and even Go with some OSS compilers) making it quite versatile.
 
 ---
 
@@ -36,17 +35,13 @@ cmake -G "Ninja" -DLLVM_ROOT=llvm-project\build ..
 ninja
 ```
 
-
-### **Writing a simple pass**
-
-We’ve seen that passes let you change the IR at instruction-level granularity. But how do you write them? LLVM supports multiple kinds of passes **FunctionPass**, **ModulePass**, **LoopPass**, **MachineCodePass** etc. 
-But also different ways of building them, in-tree and out-of-tree. In this example, I’ll do **out-of-tree** because it’s easier and more portable.
-We’ll only write a FunctionPass for now
+**Registration example:**
+We mentioned earlier that passes let you change IR with instruction-level granularity. But how do you write them? LLVM supports multiple kinds of passes **FunctionPass**, **ModulePass**, **LoopPass**, **MachineCodePass** etc. 
+But also different ways of building them, in-tree and out-of-tree. In this example, I’ll focus on **out-of-tree** because it’s easier and more portable and only on FunctionPass for now.
 
 A simple pass can be decomposed into two parts:
 
 - **Registration**: How we link our pass into LLVM.
-
 - **Execution**: The actual transformation logic.
 
 **Registration example:**
@@ -70,9 +65,11 @@ extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
 ```
 
 In this example, we use the new pass plugin manager.
+
 - `ObfsPass` is the name of our class containing the transformation logic.
 - `"myobf"` is the pass name used in the command line.
-For example, to run this pass:
+
+To run this pass:
 
 ```shell
 opt -load-pass-plugin=./bin/LLVMMyObfsPass.dll -passes=myobf   -o test_obf.ll test.ll
@@ -99,14 +96,13 @@ Hi
 ---
 ### **Compiling the Pass**
 
+In the ``llvm/lib/Transformation/`` directory, create a folder for your pass. Then, in the ``CmakeList.txt`` of Transforms add the name of folder you created.
 
-Inside `llvm/lib/Transforms/`, create a directory for your pass 
-
-inside the **CMakeLists.txt** of Transforms add the name of directory you created
 ```cmake
 add_subdirectory(MyObfsPass)
 ```
-Inside your directory create your own **CMakeLists.txt** 
+
+In this new directory, create your own ``CmakeList.txt``. 
 
 ```cmake
 #SHARED is used to create a dll
@@ -126,9 +122,8 @@ set_target_properties(LLVMMyObfsPass PROPERTIES
 )
 ```
 
-and after in LLVM_source/build we can use 
-``ninja LLVMMyObfsPass``
-To know the name you can use 
+To find the name of the build target, you can use the following command:
+
 ```bash
 ninja -t targets | findstr.exe "Obf"
 lib/LLVMMyObfsPass.lib: 
@@ -138,9 +133,16 @@ LLVMMyObfsPass.dll: phony
 [...]
 ```
 
-Now everything should be set up, we will begin with this very basic example.
+Finally, we can build the pass by running the following command in LLVM_source/build:
 
-In this example, we will only check for the main function. For each basic block of the function and each instruction, we get the operands, and if it's a ConstantInt, let's modify it to **42**.
+```
+ninja LLVMMyObfsPass
+```
+
+
+Now everything should be setup ! Let’s begin with a very basic example.
+
+We will go through the main function, for each basic block of the function and each instruction we get the operand and if it's a *ConstantInt*, let's modify to **42**.
 
 ```cpp
 
@@ -183,8 +185,7 @@ PreservedAnalyses ObfsPass::run(Function &F, FunctionAnalysisManager &AM) {
 
 Let's test it!
 
-
-As an example, let's write this simple C code
+We will take this simple C code as an example:
 
 ```c
 #add.c
@@ -203,7 +204,7 @@ clang test.c
 
 ![](main_simple.png)
 
-Now we can apply the pass we wrote and see if it's working
+Now we can apply the pass we wrote and see if it works:
 
 ```bash
 clang -emit-llvm -S -O0 -Xclang -disable-O0-optnone -g test.c -o test.ll
@@ -233,11 +234,12 @@ clang test_obf.ll -o a.exe
 As you can see, the constants have been modified
 
 ### **The Encryption/Decryption Process in Depth**
-So let's explain the real passes. First, the objective is to find every string in our code, encrypt it at compile time, and use a simple stub to decrypt and re-encrypt the strings at each use.
 
-First, we will only do this for C, because strings in C are very simple: bytes (char) with a string terminator ('\0').
+Now let's see some real passes. The first one is to find every string in our code, encrypt it at compile time and add a simple stub that will decrypt and encrypt back the string during runtime, when the string is "used".
 
-We can find every string using this:
+We will only do this for C because, C-strings are very simple: bytes (char) with a null-byte terminator ('\0').
+
+We can find every string using the following code:
 
 ```cpp
 std::vector<StringUsage> FindAllStringUsages(Function &F) {
@@ -265,11 +267,9 @@ std::vector<StringUsage> FindAllStringUsages(Function &F) {
 [...]
 ```
 
+The code is awful but it works. We take every Instruction of every BasicBlock, get the Operand, and if we find a *ConstantDataArray* that is a string (as described before), we can get all information in our structure.
 
-This code is awful, but it works. We take every instruction of all basic blocks, get the operand, and if we find a ConstantDataArray and it's a string, we can get all the info in our struct.
-
-
-We can Write the code for the stub :
+Then, we can write the code for the stub.
 
 ```cpp
 // void deobfuscate(i32 key, i8* str)
@@ -281,8 +281,7 @@ We can Write the code for the stub :
     Function *DeobfFunc = Function::Create(FT, Function::ExternalLinkage, "deobfuscate", &M);
 ```
 
-
-It's how we can define our function, after this we can parse args, and create our BB using
+This is how we can define our function. After that, we can parse arguments and create our *BasicBlock* using the following code:
 
 ```cpp
 BasicBlock *LoopCond = BasicBlock::Create(Ctx, "loop.cond", DeobfFunc);
@@ -290,9 +289,10 @@ BasicBlock *LoopBody = BasicBlock::Create(Ctx, "loop.body", DeobfFunc);
 BasicBlock *LoopEnd  = BasicBlock::Create(Ctx, "loop.end", DeobfFunc);
 ```
 
-so we have our BB, this is a simple loop.
+This code creates three LLVM basic blocks inside DeobfFunc that represent a loop’s control flow:
+loop.cond checks the condition, loop.body contains the loop’s instructions, and loop.end runs after the loop finishes.
 
-And for the instruction, for example, this is the "body" the part of the code that will use quantum-proof encryption, also known as XOR
+For example, this is the "body" the part of the code that will use quantum-proof encryption, also known as XOR
 
 ```cpp
 //Add at the end of the basic block
@@ -306,9 +306,7 @@ PtrPhi->addIncoming(Next, LoopBody);
 B.CreateBr(LoopCond);
 ```
 
-
-
-We can finaly create our encrypted strings
+We can finaly create our encrypted string:
 
 ```cpp
 ConstantDataArray *CA = cast<ConstantDataArray>(GV->getInitializer());
@@ -321,7 +319,7 @@ for (char C : Str) {
 		}
 	XoredStr += C ^ (char)(Key & 0xFF);
 ```
-We initialize a new String, take the value that we find earlier xor it 
+We initialize a new String, take the value that we find earlier XOR it 
 
 ```cpp
 //Init new ConstDataArray, this is our new string encrypted
@@ -330,7 +328,7 @@ Constant *NewInit = ConstantDataArray::getString(Ctx, XoredStr, false);
             GV->setInitializer(NewInit);
 ```
 
-and finaly add call to our stub
+Finally, we add a call to our stub:
 
 ```cpp
 RBuilder<> Builder(UserInst);
@@ -346,19 +344,16 @@ RBuilder<> Builder(UserInst);
         Builder.CreateCall(DeobfFunc, {KeyVal, StrPtr});
 ```
 
-So we take the instruction where the strings is used and just before add our decryption and we encrypt it back after use.
-
+Just before the string is used, we add our decryption routine, and revert back to its encrypted form when done.
 
 ### **Modifing function** 
 
+Now, we want to replace a function by another one. But why? Because it's fun. Also we could change a call to a function like a GetProcAdress with a custom one that uses API hashing. You don’t need to think about evasion if you compiler is kind enough to do it for you.
 
-This time we want to replace a function by another. Why? Because it's fun, but also we could change a call to a function like GetProcAddress to a custom one using hashes. No need to think of evasion if your compiler is kind.
-
-
-Let's take our earlier example : 
+Let's take our previous example : 
 
 ```c
-#add.c
+// add.c
 #include <stdio.h>
 int add(int a, int b){
         return (a+b);
@@ -376,7 +371,7 @@ int main(){
 clang -emit-llvm -S -O0 -Xclang -disable-O0-optnone -g add.c -o add.ll
 ```
 
-let's create our other func in an other file
+Let's create the replacement function in an other file:
 
 ```c
 #sub.c
@@ -397,8 +392,7 @@ unsigned char sub_bc[] = {
 
 We can now import this as a header file.
 
-
-inside our pass, it's possible to create a function like this one, take current module, bytecode array and size, parse it using parseBitcodeFile and link to the current module
+In our pass, it's possible to create a function like this one, take current module, bytecode array and size, parse it using parseBitcodeFile and link it to the current module.
 
 ```cpp
 bool ObfsPass::InMemoryLLVM(llvm::Module &M, const unsigned char bc[], unsigned int bc_len) {
@@ -422,7 +416,7 @@ bool ObfsPass::InMemoryLLVM(llvm::Module &M, const unsigned char bc[], unsigned 
 }
 ```
 
-And finally we can take the to functions, take every call of add, and replace with a call of sub
+Finally we can replace every call to add with a call to sub.
 
 ```cpp
     if (!InMemoryLLVM(M, sub_bc, sub_bc_len)) {
@@ -456,6 +450,10 @@ and if we compile it.
 
 ![](/CallAddBecomSub_1.png))
 ![](/CallAddBecomSub_2.png)
-As you can see, we replace the called function by an other.
 
-Next time let's see how create MachineLevelPasses to permit changing things during machine code generation.
+As you can see, we replaced the called function by another.
+
+Next time we will see how to create MachineLevelPasses that allow to change "things" during machine code generation.
+
+
+Thx Atsika for the rewrite :)
