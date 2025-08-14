@@ -3,6 +3,8 @@ title: "OffensiveLLVM Part 1"
 date: 2025-08-13T21:40:22+02:00
 ---
 
+## **Introduction to LLVM**
+
 ```
 Disclaimer: I'm a novice with LLVM—my only experience is about two days of writing passes and trying to learn how everything works. If you spot any misinterpretations or errors, let me know! ;)
 ```
@@ -26,7 +28,7 @@ A nice thing is that since these transformations happen between IR → MC (machi
 
 ---
 
-**Compiling LLVM**  
+### **Compiling LLVM**  
 I’m doing this on Windows, so some steps might differ on Linux.
 
 ```bash
@@ -231,7 +233,7 @@ clang test_obf.ll -o a.exe
 ```
 
 ![](/42_replace_int.png)
-As you can see, the constants have been modified
+As you can see, the constants have been modified.
 
 ### **The Encryption/Decryption Process in Depth**
 
@@ -292,7 +294,7 @@ BasicBlock *LoopEnd  = BasicBlock::Create(Ctx, "loop.end", DeobfFunc);
 This code creates three LLVM basic blocks inside DeobfFunc that represent a loop’s control flow:
 loop.cond checks the condition, loop.body contains the loop’s instructions, and loop.end runs after the loop finishes.
 
-For example, this is the "body" the part of the code that will use quantum-proof encryption, also known as XOR
+For example, this is the "body" the part of the code that will use quantum-proof encryption, also known as XOR.
 
 ```cpp
 //Add at the end of the basic block
@@ -319,7 +321,7 @@ for (char C : Str) {
 		}
 	XoredStr += C ^ (char)(Key & 0xFF);
 ```
-We initialize a new String, take the value that we find earlier XOR it 
+We initialize a new String, take the value that we find earlier XOR it.
 
 ```cpp
 //Init new ConstDataArray, this is our new string encrypted
@@ -448,7 +450,7 @@ and if we compile it.
 
 (don't look at the debugbreak it's for later)
 
-![](/CallAddBecomSub_1.png))
+![](/CallAddBecomSub_1.png)
 ![](/CallAddBecomSub_2.png)
 
 As you can see, we replaced the called function by another.
