@@ -4,8 +4,9 @@ date: 2025-08-13T21:40:22+02:00
 ---
 
 ```
-Little disclaimer: I'm a novice with LLVM—my only experience is about two days of writing passes and trying to learn how everything works. If you spot any misinterpretations or errors, let me know! ;)
+Disclaimer: I'm a novice with LLVM—my only experience is about two days of writing passes and trying to learn how everything works. If you spot any misinterpretations or errors, let me know! ;)
 ```
+[!warning] Disclaimer
 
 Have you already heard of **OLLVM**, a compiler that outputs obfuscated binaries? Probably. But what is it exactly? Can we achieve something similar ?
 
@@ -455,5 +456,4 @@ As you can see, we replaced the called function by another.
 
 Next time we will see how to create MachineLevelPasses that allow to change "things" during machine code generation.
 
-
-Thx Atsika for the rewrite :)
+Thanks [Atsika](https://x.com/_atsika) for the review

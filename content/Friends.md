@@ -5,4 +5,4 @@ Some Friends blogposts :
 - [abel](https://theoabel.com/)
 - [2ourc3](https://bushido-sec.com/)
 - [bakki](https://sillywa.re/)
-
+- [Atsika](https://blog.atsika.ninja/)
