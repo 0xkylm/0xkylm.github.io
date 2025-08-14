@@ -10,7 +10,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --w: calc(680px + 32px * 2);
+  --w: calc(920px + 32px * 2);
 }
 
 @utility dark-bg {

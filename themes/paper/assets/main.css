@@ -47,7 +47,7 @@
     --default-mono-font-variation-settings: var(
       --font-mono--font-variation-settings
     );
-    --w: calc(680px + 32px * 2);
+    --w: calc(920px + 32px * 2);
   }
 }
 @layer base {
