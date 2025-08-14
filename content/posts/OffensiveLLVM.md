@@ -448,7 +448,7 @@ Finally we can replace every call to add with a call to sub.
 
 and if we compile it.
 
-(don't look at the debugbreak it's for later)
+don't look at the debugbreak it's for later.
 
 ![](/CallAddBecomSub_1.png)
 ![](/CallAddBecomSub_2.png)
