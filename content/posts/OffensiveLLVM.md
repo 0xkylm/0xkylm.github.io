@@ -6,7 +6,6 @@ date: 2025-08-13T21:40:22+02:00
 ```
 Disclaimer: I'm a novice with LLVM—my only experience is about two days of writing passes and trying to learn how everything works. If you spot any misinterpretations or errors, let me know! ;)
 ```
-[!warning] Disclaimer
 
 Have you already heard of **OLLVM**, a compiler that outputs obfuscated binaries? Probably. But what is it exactly? Can we achieve something similar ?
 
@@ -203,7 +202,7 @@ int main(){
 clang test.c
 ```
 
-![](main_simple.png)
+![](/main_simple.png)
 
 Now we can apply the pass we wrote and see if it works:
 
@@ -231,7 +230,7 @@ Processing function: _vsprintf_l
 clang test_obf.ll -o a.exe
 ```
 
-![](42_replace_int.png)
+![](/42_replace_int.png)
 As you can see, the constants have been modified
 
 ### **The Encryption/Decryption Process in Depth**
