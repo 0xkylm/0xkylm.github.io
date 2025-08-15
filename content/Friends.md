@@ -6,3 +6,5 @@ Some Friends blogposts :
 - [2ourc3](https://bushido-sec.com/)
 - [bakki](https://sillywa.re/)
 - [Atsika](https://blog.atsika.ninja/)
+- [Dallas](https://x.com/RtlDallas)
+
