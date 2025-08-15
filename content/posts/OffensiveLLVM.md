@@ -446,7 +446,7 @@ Finally we can replace every call to add with a call to sub.
     }
 ```
 
-and if we compile it.
+and if we compile it, and execute the pass, function call should be change, call to add() should be now call to sub().
 
 don't look at the debugbreak it's for later.
 
