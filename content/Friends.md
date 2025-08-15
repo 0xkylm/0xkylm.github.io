@@ -7,4 +7,4 @@ Some Friends blogposts :
 - [bakki](https://sillywa.re/)
 - [Atsika](https://blog.atsika.ninja/)
 - [Dallas](https://x.com/RtlDallas)
-
+- [Isis](https://isis.red)
